@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders</title>
+    <title>Order History | BookStore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="index.html">BookStore</a>
+        <a class="navbar-brand" href="index.html"><i class="bi bi-book-half me-2"></i>BookStore</a>
         <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Back to Store</a></li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container">
-    <h2 class="mb-4">Order History</h2>
-    <div id="orderList" class="accordion shadow-sm">
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">My Order History</h2>
+    </div>
+
+    <div id="successAlert" class="alert alert-success d-none mb-4 shadow-sm border-0">
+        <i class="bi bi-check-circle-fill me-2"></i> Your order has been placed successfully!
+    </div>
+
+    <div id="orderList" class="accordion accordion-flush shadow-sm rounded-4 overflow-hidden">
         <!-- Orders loaded here -->
     </div>
 </div>
 
 <script>
     async function loadOrders() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('success')) document.getElementById('successAlert').classList.remove('d-none');
+
         const resp = await fetch('../backend/orders.php?action=list');
         const orders = await resp.json();
         
@@ -37,33 +49,62 @@
 
         const container = document.getElementById('orderList');
         if (orders.length === 0) {
-            container.innerHTML = '<div class="alert alert-info">You haven\'t placed any orders yet.</div>';
+            container.innerHTML = '<div class="bg-white p-5 text-center"><i class="bi bi-bag-x fs-1 text-muted"></i><h4 class="mt-3">No orders found</h4><a href="index.html" class="btn btn-primary mt-2">Start Shopping</a></div>';
             return;
         }
 
+        container.innerHTML = '';
         for (const order of orders) {
-            const statusClass = order.status === 'Delivered' ? 'bg-success' : (order.status === 'Pending' ? 'bg-warning' : 'bg-primary');
+            const statusClass = {
+                'Pending': 'bg-warning-subtle text-warning-emphasis',
+                'Processing': 'bg-info-subtle text-info-emphasis',
+                'Shipped': 'bg-primary-subtle text-primary-emphasis',
+                'Delivered': 'bg-success-subtle text-success-emphasis'
+            }[order.status] || 'bg-secondary-subtle';
+
             const orderDiv = document.createElement('div');
-            orderDiv.className = 'accordion-item';
+            orderDiv.className = 'accordion-item border-bottom';
             orderDiv.innerHTML = `
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#order${order.id}">
-                        <div class="d-flex justify-content-between w-100 me-3">
-                            <span>Order #${order.id} - ${new Date(order.created_at).toLocaleDateString()}</span>
-                            <span>$${order.total_price}</span>
-                            <span class="badge ${statusClass}">${order.status}</span>
+                    <button class="accordion-button collapsed py-4" type="button" data-bs-toggle="collapse" data-bs-target="#order${order.id}">
+                        <div class="container-fluid p-0">
+                            <div class="row align-items-center g-3">
+                                <div class="col-md-3">
+                                    <span class="text-muted small d-block">ORDER NUMBER</span>
+                                    <span class="fw-bold">#ORD-${order.id}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="text-muted small d-block">DATE PLACED</span>
+                                    <span class="fw-semibold">${new Date(order.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="text-muted small d-block">TOTAL</span>
+                                    <span class="fw-bold text-primary">$${order.total_price}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="badge ${statusClass} rounded-pill px-3 py-2 mt-1">${order.status}</span>
+                                </div>
+                            </div>
                         </div>
                     </button>
                 </h2>
                 <div id="order${order.id}" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        <p><strong>Shipping Address:</strong> ${order.shipping_address}</p>
-                        <p><strong>Payment Method:</strong> ${order.payment_method}</p>
-                        <hr>
-                        <h6>Items:</h6>
-                        <ul class="list-group" id="items${order.id}">
-                            <li class="list-group-item">Loading items...</li>
-                        </ul>
+                    <div class="accordion-body bg-light-subtle p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-uppercase small text-muted mb-3">Delivery Address</h6>
+                                <p class="mb-0 text-secondary">${order.shipping_address}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-uppercase small text-muted mb-3">Payment Details</h6>
+                                <p class="mb-0 text-secondary"><i class="bi bi-wallet2 me-2"></i>${order.payment_method}</p>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-uppercase small text-muted mb-3">Order Items</h6>
+                        <div class="list-group list-group-flush rounded-3 shadow-sm" id="items${order.id}">
+                            <div class="list-group-item text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -79,13 +120,16 @@
         list.innerHTML = '';
         items.forEach(item => {
             list.innerHTML += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${item.title}</strong> by ${item.author}<br>
-                        <small>Qty: ${item.quantity} | Price: $${item.price_at_purchase}</small>
+                <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center">
+                        <img src="${item.image_url || 'https://via.placeholder.com/40x55'}" width="40" class="rounded me-3 shadow-sm">
+                        <div>
+                            <div class="fw-bold small">${item.title}</div>
+                            <div class="text-muted extra-small">Quantity: ${item.quantity}</div>
+                        </div>
                     </div>
-                    <span>$${(item.quantity * item.price_at_purchase).toFixed(2)}</span>
-                </li>
+                    <div class="fw-bold small">$${(item.quantity * item.price_at_purchase).toFixed(2)}</div>
+                </div>
             `;
         });
     }
@@ -93,5 +137,10 @@
     loadOrders();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+    .accordion-button:not(.collapsed) { background-color: #fff; box-shadow: none; color: var(--primary-color); }
+    .accordion-button:focus { box-shadow: none; }
+    .extra-small { font-size: 0.75rem; }
+</style>
 </body>
 </html>

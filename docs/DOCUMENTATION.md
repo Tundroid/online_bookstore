@@ -78,6 +78,7 @@ The application uses a MySQL database with the following tables and relationship
 
 ### ERD
 ![Project DB Schema](schema.png)
+*Figure 1: Project Database Schema*
 
 ## 3. Architecture Description
 
@@ -258,20 +259,37 @@ The frontend is a small multi-page application using standard HTML, Bootstrap, a
 - Update order statuses such as Pending, Processing, Shipped, and Delivered.
 - Review dashboard statistics for total revenue, total orders, and best-selling books.
 
-## 6. Annotated Screenshots and Placeholders
+## 6. Annotated Screenshots
 
-User Registration Page ![User Registration Page](image-0.png)
-User Login Page ![User Login Page](image-1.png)
-Book Catalog Page - Desktop View ![Book Catalog Page - Desktop View](image-2.png)
-Book Catalog Page - Movile View ![Book Catalog Page - Movile View](image-3.png)
-Book Details Page ![Book Details Page](image-4.png)
-Cart View and Checkout Page ![Cart View and Checkout Page](image-5.png)
-Order Confirmation Page ![Order Confirmation Page](image-6.png)
-Uper Profile Page ![User Profile Page](image-7.png)
-Update User Email / Password Form ![Update User Email / Password Form](image-8.png)
-Catalog Page when admin signs in ![Catalog Page when admin signs in](image-9.png)
-Admin Dashboard and Orders ![Admin Dashboard and Orders](image-10.png)
-Admin Orders ![Admin Orders](image-11.png)
-Admin Inventory ![Admin Inventory](image-12.png)
-Add New Book to Inventory ![Adding New Book to Inventory](image-13.png)
-Invoice Page ![Invoice Page](image-14.png)
+![User Registration Page](image-0.png)
+*Figure 2: User Registration Page*
+![User Login Page](image-1.png)
+*Figure 3: User Login Page*
+![Book Catalog Page - Desktop View](image-2.png)
+*Figure 4: Book Catalog Page - Desktop View*
+![Book Catalog Page - Movile View](image-3.png)
+*Figure 5: Book Catalog Page - Movile View*
+![Book Details Page](image-4.png)
+*Figure 6: Book Details Page*
+![Cart View and Checkout Page](image-5.png)
+*Figure 7: Cart View and Checkout Page*
+![Order Confirmation Page](image-6.png)
+*Figure 8: Order Confirmation Page*
+![User Profile Page](image-7.png)
+*Figure 9: User Profile Page*
+![Order History Page](image-10.png)
+*Figure 10: Order History Page*
+![Update User Email / Password Form](image-8.png)
+*Figure 11: Update User Email / Password Form*
+![Catalog Page when admin signs in](image-9.png)
+*Figure 11: Catalog Page when admin signs in*
+![Admin Dashboard and Orders](image-10.png)
+*Figure 12: Admin Dashboard and Orders*
+![Admin Orders](image-11.png)
+*Figure 13: Admin Orders*
+![Admin Inventory](image-12.png)
+*Figure 14: Admin Inventory*
+![Adding New Book to Inventory](image-13.png)
+*Figure 15: Adding New Book to Inventory*
+![Invoice Page](image-14.png)
+*Figure 16: Invoice Page*

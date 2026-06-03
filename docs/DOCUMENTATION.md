@@ -262,34 +262,65 @@ The frontend is a small multi-page application using standard HTML, Bootstrap, a
 ## 6. Annotated Screenshots
 
 ![User Registration Page](image-0.png)
+
 *Figure 2: User Registration Page*
+
 ![User Login Page](image-1.png)
+
 *Figure 3: User Login Page*
+
 ![Book Catalog Page - Desktop View](image-2.png)
+
 *Figure 4: Book Catalog Page - Desktop View*
-![Book Catalog Page - Movile View](image-3.png)
-*Figure 5: Book Catalog Page - Movile View*
+
+![Book Catalog Page - Mobile View](image-3.png)
+
+*Figure 5: Book Catalog Page - Mobile View*
+
 ![Book Details Page](image-4.png)
+
 *Figure 6: Book Details Page*
+
 ![Cart View and Checkout Page](image-5.png)
+
 *Figure 7: Cart View and Checkout Page*
+
 ![Order Confirmation Page](image-6.png)
+
 *Figure 8: Order Confirmation Page*
+
 ![User Profile Page](image-7.png)
+
 *Figure 9: User Profile Page*
+
 ![Order History Page](image-10.png)
+
 *Figure 10: Order History Page*
+
 ![Update User Email / Password Form](image-8.png)
+
 *Figure 11: Update User Email / Password Form*
-![Catalog Page when admin signs in](image-9.png)
-*Figure 11: Catalog Page when admin signs in*
+
+![Catalog Page when Admin Signs In](image-9.png)
+
+*Figure 12: Catalog Page when Admin Signs In*
+
 ![Admin Dashboard and Orders](image-10.png)
-*Figure 12: Admin Dashboard and Orders*
+
+*Figure 13: Admin Dashboard and Orders*
+
 ![Admin Orders](image-11.png)
-*Figure 13: Admin Orders*
+
+*Figure 14: Admin Orders*
+
 ![Admin Inventory](image-12.png)
-*Figure 14: Admin Inventory*
+
+*Figure 15: Admin Inventory*
+
 ![Adding New Book to Inventory](image-13.png)
-*Figure 15: Adding New Book to Inventory*
+
+*Figure 16: Adding New Book to Inventory*
+
 ![Invoice Page](image-14.png)
-*Figure 16: Invoice Page*
+
+*Figure 17: Invoice Page*

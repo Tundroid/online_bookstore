@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">BookStore</a>
+    </div>
+</nav>
+
+<div class="container">
+    <h2 class="mb-4">Your Shopping Cart</h2>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="cartItems">
+                <!-- Cart items loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-6 text-end">
+            <h4>Total: <span id="cartTotal">$0.00</span></h4>
+            <a href="checkout.html" class="btn btn-success btn-lg mt-2">Proceed to Checkout</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadCart() {
+        const resp = await fetch('../backend/cart.php?action=list');
+        const items = await resp.json();
+        
+        if (!Array.isArray(items)) {
+            window.location.href = 'auth.html';
+            return;
+        }
+
+        const tbody = document.getElementById('cartItems');
+        tbody.innerHTML = '';
+        let total = 0;
+
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Your cart is empty.</td></tr>';
+        } else {
+            items.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="${item.image_url || 'https://via.placeholder.com/50x75'}" width="50" class="me-3">
+                                <div>
+                                    <div class="fw-bold">${item.title}</div>
+                                    <small class="text-muted">${item.author}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>$${item.price}</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm update-qty" style="width: 70px;" 
+                                data-id="${item.book_id}" value="${item.quantity}" min="1">
+                        </td>
+                        <td>$${subtotal.toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm remove-item" data-id="${item.book_id}">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+    }
+
+    document.addEventListener('change', async (e) => {
+        if (e.target.classList.contains('update-qty')) {
+            const bookId = e.target.getAttribute('data-id');
+            const qty = e.target.value;
+            await fetch('../backend/cart.php?action=update', {
+                method: 'POST',
+                body: new URLSearchParams({ book_id: bookId, quantity: qty })
+            });
+            loadCart();
+        }
+    });
+
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('remove-item')) {
+            const bookId = e.target.getAttribute('data-id');
+            await fetch('../backend/cart.php?action=remove', {
+                method: 'POST',
+                body: new URLSearchParams({ book_id: bookId })
+            });
+            loadCart();
+        }
+    });
+
+    loadCart();
+</script>
+</body>
+</html>

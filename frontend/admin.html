@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-danger mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">BookStore Admin</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Store Front</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white text-center p-3 shadow-sm">
+                <h3>Total Sales</h3>
+                <h2 id="statSales">$0.00</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white text-center p-3 shadow-sm">
+                <h3>Orders</h3>
+                <h2 id="statOrders">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white text-center p-3 shadow-sm">
+                <h3>Books</h3>
+                <h2 id="statBooks">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="adminTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#manageBooks">Manage Books</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#salesReport">Sales Report</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Manage Books -->
+        <div class="tab-pane fade show active" id="manageBooks">
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#bookModal">Add New Book</button>
+            <table class="table table-striped shadow-sm">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="adminBookList"></tbody>
+            </table>
+        </div>
+
+        <!-- Sales Report -->
+        <div class="tab-pane fade" id="salesReport">
+            <table class="table table-hover shadow-sm">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="reportList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Book Modal -->
+<div class="modal fade" id="bookModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="bookForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Book Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="bookId">
+                    <div class="mb-3"><label class="form-label">Title</label><input type="text" id="title" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Author</label><input type="text" id="author" class="form-control" required></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Price</label><input type="number" step="0.01" id="price" class="form-control" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Stock</label><input type="number" id="stock" class="form-control" required></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Genre</label><input type="text" id="genre" class="form-control"></div>
+                    <div class="mb-3"><label class="form-label">Image URL</label><input type="text" id="image_url" class="form-control"></div>
+                    <div class="mb-3"><label class="form-label">Description</label><textarea id="description" class="form-control" rows="3"></textarea></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function loadStats() {
+        const resp = await fetch('../backend/admin.php?action=stats');
+        const data = await resp.json();
+        if (data.success === false) { window.location.href = 'index.html'; return; }
+        document.getElementById('statSales').textContent = `$${parseFloat(data.totalSales).toFixed(2)}`;
+        document.getElementById('statOrders').textContent = data.totalOrders;
+        document.getElementById('statBooks').textContent = data.totalBooks;
+    }
+
+    async function loadBooks() {
+        const resp = await fetch('../backend/books.php?action=list&page=1&limit=100');
+        const data = await resp.json();
+        const tbody = document.getElementById('adminBookList');
+        tbody.innerHTML = '';
+        data.books.forEach(book => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>$${book.price}</td>
+                    <td>${book.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info edit-book" data-book='${JSON.stringify(book)}'>Edit</button>
+                        <button class="btn btn-sm btn-danger delete-book" data-id="${book.id}">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function loadSalesReport() {
+        const resp = await fetch('../backend/admin.php?action=sales_report');
+        const orders = await resp.json();
+        const tbody = document.getElementById('reportList');
+        tbody.innerHTML = '';
+        orders.forEach(order => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${order.username}</td>
+                    <td>$${order.total_price}</td>
+                    <td><span class="badge bg-secondary">${order.status}</span></td>
+                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <select class="form-select form-select-sm update-status" data-id="${order.id}">
+                            <option value="Pending" ${order.status==='Pending'?'selected':''}>Pending</option>
+                            <option value="Processing" ${order.status==='Processing'?'selected':''}>Processing</option>
+                            <option value="Shipped" ${order.status==='Shipped'?'selected':''}>Shipped</option>
+                            <option value="Delivered" ${order.status==='Delivered'?'selected':''}>Delivered</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('bookId').value;
+        const action = id ? 'update_book' : 'add_book';
+        const formData = new FormData(e.target);
+        // Manual append because IDs are different from name (common laziness)
+        formData.append('id', id);
+        formData.append('title', document.getElementById('title').value);
+        formData.append('author', document.getElementById('author').value);
+        formData.append('price', document.getElementById('price').value);
+        formData.append('stock', document.getElementById('stock').value);
+        formData.append('genre', document.getElementById('genre').value);
+        formData.append('image_url', document.getElementById('image_url').value);
+        formData.append('description', document.getElementById('description').value);
+
+        const resp = await fetch(`../backend/admin.php?action=${action}`, { method: 'POST', body: formData });
+        const res = await resp.json();
+        alert(res.message);
+        bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
+        loadBooks(); loadStats();
+    });
+
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-book')) {
+            if (confirm('Are you sure?')) {
+                const id = e.target.getAttribute('data-id');
+                const formData = new FormData(); formData.append('id', id);
+                await fetch('../backend/admin.php?action=delete_book', { method: 'POST', body: formData });
+                loadBooks(); loadStats();
+            }
+        }
+        if (e.target.classList.contains('edit-book')) {
+            const book = JSON.parse(e.target.getAttribute('data-book'));
+            document.getElementById('bookId').value = book.id;
+            document.getElementById('title').value = book.title;
+            document.getElementById('author').value = book.author;
+            document.getElementById('price').value = book.price;
+            document.getElementById('stock').value = book.stock;
+            document.getElementById('genre').value = book.genre;
+            document.getElementById('image_url').value = book.image_url;
+            document.getElementById('description').value = book.description;
+            new bootstrap.Modal(document.getElementById('bookModal')).show();
+        }
+    });
+
+    document.addEventListener('change', async (e) => {
+        if (e.target.classList.contains('update-status')) {
+            const id = e.target.getAttribute('data-id');
+            const status = e.target.value;
+            const formData = new FormData(); formData.append('id', id); formData.append('status', status);
+            await fetch('../backend/admin.php?action=update_order_status', { method: 'POST', body: formData });
+            loadSalesReport();
+        }
+    });
+
+    loadStats(); loadBooks(); loadSalesReport();
+</script>
+</body>
+</html>

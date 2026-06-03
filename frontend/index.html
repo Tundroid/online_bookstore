@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Bookstore - Catalog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .book-card img { height: 250px; object-fit: cover; }
+        .navbar { margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">BookStore</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+            </ul>
+            <ul class="navbar-nav" id="authLinks">
+                <!-- Links will be populated by JS -->
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by title or author...">
+                <button class="btn btn-outline-secondary" type="button" id="searchBtn">Search</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select id="genreFilter" class="form-select">
+                <option value="">All Genres</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="bookList" class="row">
+        <!-- Books will be loaded here -->
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center" id="pagination">
+            <!-- Pagination will be loaded here -->
+        </ul>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentUser = null;
+
+    async function checkAuth() {
+        const resp = await fetch('../backend/auth.php?action=check');
+        const data = await resp.json();
+        const authLinks = document.getElementById('authLinks');
+        if (data.isLoggedIn) {
+            currentUser = data.user;
+            authLinks.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="cart.html">Cart</a></li>
+                <li class="nav-item"><a class="nav-link" href="orders.html">My Orders</a></li>
+                <li class="nav-item"><span class="nav-link">Hi, ${data.user.username}</span></li>
+                ${data.user.role === 'admin' ? '<li class="nav-item"><a class="nav-link" href="admin.html">Admin</a></li>' : ''}
+                <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">Logout</a></li>
+            `;
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await fetch('../backend/auth.php?action=logout');
+                location.reload();
+            });
+        } else {
+            authLinks.innerHTML = '<li class="nav-item"><a class="nav-link" href="auth.html">Login/Register</a></li>';
+        }
+    }
+
+    async function loadGenres() {
+        const resp = await fetch('../backend/books.php?action=genres');
+        const genres = await resp.json();
+        const filter = document.getElementById('genreFilter');
+        genres.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g;
+            opt.textContent = g;
+            filter.appendChild(opt);
+        });
+    }
+
+    async function loadBooks(page = 1) {
+        const search = document.getElementById('searchInput').value;
+        const genre = document.getElementById('genreFilter').value;
+        const resp = await fetch(`../backend/books.php?action=list&page=${page}&search=${search}&genre=${genre}`);
+        const data = await resp.json();
+        
+        const list = document.getElementById('bookList');
+        list.innerHTML = '';
+        
+        if (data.books.length === 0) {
+            list.innerHTML = '<div class="col-12 text-center"><h3>No books found.</h3></div>';
+        } else {
+            data.books.forEach(book => {
+                list.innerHTML += `
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 book-card shadow-sm">
+                            <img src="${book.image_url || 'https://via.placeholder.com/250x350?text=No+Cover'}" class="card-img-top" alt="${book.title}">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">${book.title}</h5>
+                                <p class="card-text text-muted">by ${book.author}</p>
+                                <p class="card-text text-primary fw-bold">$${book.price}</p>
+                                <p class="card-text small text-truncate">${book.description}</p>
+                                <div class="mt-auto">
+                                    <a href="details.html?id=${book.id}" class="btn btn-outline-primary btn-sm">Details</a>
+                                    <button class="btn btn-primary btn-sm add-to-cart" data-id="${book.id}">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const pagin = document.getElementById('pagination');
+        pagin.innerHTML = '';
+        for (let i = 1; i <= data.totalPages; i++) {
+            pagin.innerHTML += `<li class="page-item ${i === data.currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="loadBooks(${i})">${i}</a></li>`;
+        }
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', () => loadBooks(1));
+    document.getElementById('genreFilter').addEventListener('change', () => loadBooks(1));
+
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('add-to-cart')) {
+            if (!currentUser) {
+                alert('Please login to add items to cart.');
+                window.location.href = 'auth.html';
+                return;
+            }
+            const bookId = e.target.getAttribute('data-id');
+            const resp = await fetch('../backend/cart.php?action=add', {
+                method: 'POST',
+                body: new URLSearchParams({ book_id: bookId, quantity: 1 })
+            });
+            const res = await resp.json();
+            alert(res.message);
+        }
+    });
+
+    checkAuth();
+    loadGenres();
+    loadBooks();
+</script>
+</body>
+</html>

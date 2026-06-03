@@ -16,17 +16,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Book CRUD
     if ($action === 'create_book' || $action === 'update_book') {
         $id = $_POST['id'] ?? null;
-        $title = $_POST['title'] ?? '';
-        $author = $_POST['author'] ?? '';
-        $publisher = $_POST['publisher'] ?? '';
-        $description = $_POST['description'] ?? '';
-        $price = $_POST['price'] ?? 0;
-        $genre = $_POST['genre'] ?? '';
-        $stock = $_POST['stock'] ?? 0;
-        $image_url = $_POST['image_url'] ?? '';
+        $title = trim($_POST['title'] ?? '');
+        $author = trim($_POST['author'] ?? '');
+        $publisher = trim($_POST['publisher'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $price = (float)($_POST['price'] ?? 0);
+        $genre = trim($_POST['genre'] ?? '');
+        $stock = (int)($_POST['stock'] ?? 0);
+        $image_url = trim($_POST['image_url'] ?? '');
         
-        if (empty($title) || empty($author) || empty($price)) {
-            echo json_encode(['success' => false, 'message' => 'Title, author, and price required.']);
+        if (empty($title) || strlen($title) < 3) {
+            echo json_encode(['success' => false, 'message' => 'Title must be at least 3 characters.']);
+            exit;
+        }
+        
+        if (empty($author) || strlen($author) < 2) {
+            echo json_encode(['success' => false, 'message' => 'Author must be at least 2 characters.']);
+            exit;
+        }
+        
+        if ($price <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Price must be greater than 0.']);
+            exit;
+        }
+        
+        if ($stock < 0) {
+            echo json_encode(['success' => false, 'message' => 'Stock cannot be negative.']);
             exit;
         }
 
@@ -40,18 +55,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => true, 'message' => 'Book updated successfully.']);
         }
     } elseif ($action === 'delete_book') {
-        $id = $_POST['id'] ?? 0;
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid book ID.']);
+            exit;
+        }
         $stmt = $pdo->prepare("DELETE FROM books WHERE id=?");
         $stmt->execute([$id]);
         echo json_encode(['success' => true, 'message' => 'Book deleted successfully.']);
         
     } elseif ($action === 'update_order_status') {
-        $id = $_POST['order_id'] ?? 0;
+        $id = (int)($_POST['order_id'] ?? 0);
         $status = $_POST['status'] ?? '';
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid order ID.']);
+            exit;
+        }
         if (in_array($status, ['Pending', 'Processing', 'Shipped', 'Delivered'])) {
             $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
             $stmt->execute([$status, $id]);
             echo json_encode(['success' => true, 'message' => 'Order status updated.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid status value.']);
         }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {

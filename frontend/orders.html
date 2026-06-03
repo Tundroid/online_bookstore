@@ -79,7 +79,7 @@
                                 </div>
                                 <div class="col-md-2">
                                     <span class="text-muted small d-block">TOTAL</span>
-                                    <span class="fw-bold text-primary">$${order.total_price}</span>
+                                    <span class="fw-bold text-primary">${Number(order.total_price).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA</span>
                                 </div>
                                 <div class="col-md-3">
                                     <span class="badge ${statusClass} rounded-pill px-3 py-2 mt-1">${order.status}</span>
@@ -128,7 +128,7 @@
                             <div class="text-muted extra-small">Quantity: ${item.quantity}</div>
                         </div>
                     </div>
-                    <div class="fw-bold small">$${(item.quantity * item.price_at_purchase).toFixed(2)}</div>
+                    <div class="fw-bold small">${Number(item.quantity * item.price_at_purchase).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA</div>
                 </div>
             `;
         });

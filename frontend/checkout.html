@@ -15,6 +15,8 @@
     </div>
 </nav>
 
+<div id="checkout-alerts" class="container mt-3"></div>
+
 <div class="container pb-5">
     <div class="row g-5">
         <div class="col-lg-7">
@@ -24,7 +26,7 @@
                     <form id="checkoutForm">
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">SHIPPING ADDRESS</label>
-                            <textarea id="address" class="form-control" rows="3" placeholder="Enter your full delivery address..." required></textarea>
+                            <textarea id="address" class="form-control" rows="3" placeholder="Enter or select a previous address..." list="address-history" minlength="10" required></textarea><datalist id="address-history"></datalist>
                         </div>
                         <div class="mb-5">
                             <label class="form-label fw-bold small text-muted">PAYMENT METHOD</label>
@@ -39,12 +41,6 @@
                                     <input type="radio" class="btn-check" name="payment" id="payOM" value="Orange Money">
                                     <label class="btn btn-outline-secondary w-100 py-3 text-start px-3" for="payOM">
                                         <i class="bi bi-phone-vibrate me-2"></i> Orange Money
-                                    </label>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="radio" class="btn-check" name="payment" id="payPP" value="PayPal">
-                                    <label class="btn btn-outline-secondary w-100 py-3 text-start px-3" for="payPP">
-                                        <i class="bi bi-paypal me-2"></i> PayPal
                                     </label>
                                 </div>
                                 <div class="col-md-6">
@@ -72,7 +68,7 @@
                     <div class="bg-light p-3 rounded-3">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Subtotal</span>
-                            <span id="subTotal">$0.00</span>
+                            <span id="subTotal">0 FCFA</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Delivery</span>
@@ -81,7 +77,7 @@
                         <hr>
                         <div class="d-flex justify-content-between h4 fw-bold mb-0">
                             <span>Grand Total</span>
-                            <span id="summaryTotal" class="text-primary">$0.00</span>
+                            <span id="summaryTotal" class="text-primary">0 FCFA</span>
                         </div>
                     </div>
                     <p class="text-center small text-muted mt-4">
@@ -94,6 +90,16 @@
 </div>
 
 <script>
+    function showAlert(message, type = 'danger', timeout = 4000) {
+        const container = document.getElementById('checkout-alerts') || (function(){ const d=document.createElement('div'); d.id='checkout-alerts'; document.body.prepend(d); return d; })();
+        const div = document.createElement('div');
+        div.className = `alert alert-${type} alert-dismissible fade show`;
+        div.role = 'alert';
+        div.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        container.appendChild(div);
+        if (timeout > 0) setTimeout(() => { try { div.remove(); } catch(e){} }, timeout);
+    }
+
     async function loadSummary() {
         const resp = await fetch('../backend/cart.php?action=list');
         const items = await resp.json();
@@ -114,12 +120,12 @@
                         <div class="text-truncate fw-bold small">${item.title}</div>
                         <div class="text-muted extra-small">Qty: ${item.quantity}</div>
                     </div>
-                    <div class="fw-bold small ms-2">$${(item.price * item.quantity).toFixed(2)}</div>
+                    <div class="fw-bold small ms-2">${Number(item.price * item.quantity).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA</div>
                 </div>
             `;
         });
-        document.getElementById('subTotal').textContent = `$${total.toFixed(2)}`;
-        document.getElementById('summaryTotal').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('subTotal').textContent = `${Number(total).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA`;
+        document.getElementById('summaryTotal').textContent = `${Number(total).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA`;
     }
 
     document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
@@ -140,7 +146,7 @@
         if (result.success) {
             window.location.href = 'orders.html?success=1';
         } else {
-            alert(result.message);
+            showAlert(result.message, result.success ? 'success' : 'danger');
             btn.disabled = false;
             btn.innerHTML = 'Complete Order & Pay';
         }

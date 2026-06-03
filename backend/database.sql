@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS books (
     author VARCHAR(255) NOT NULL,
     description TEXT,
     publisher VARCHAR(255),
-    price DECIMAL(10, 2) NOT NULL,
+    price INT NOT NULL,
     genre VARCHAR(100),
     image_url VARCHAR(255),
     stock INT DEFAULT 0,
@@ -31,9 +31,10 @@ CREATE TABLE IF NOT EXISTS books (
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    total_price DECIMAL(10, 2) NOT NULL,
+    total_price INT NOT NULL,
     shipping_address TEXT NOT NULL,
     payment_method VARCHAR(50),
+    payment_details VARCHAR(100),
     status ENUM('Pending', 'Processing', 'Shipped', 'Delivered') DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_id INT NOT NULL,
     book_id INT NOT NULL,
     quantity INT NOT NULL,
-    price_at_purchase DECIMAL(10, 2) NOT NULL,
+    price_at_purchase INT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
@@ -69,6 +70,8 @@ INSERT INTO users (username, email, password, role) VALUES
 
 -- Sample Books
 INSERT INTO books (title, author, publisher, description, price, genre, stock) VALUES
-('The Great Gatsby', 'F. Scott Fitzgerald', 'Scribner', 'A story of wealth and love.', 10.99, 'Classic', 50),
-('1984', 'George Orwell', 'Secker & Warburg', 'Dystopian future.', 8.99, 'Sci-Fi', 30),
-('To Kill a Mockingbird', 'Harper Lee', 'J. B. Lippincott & Co.', 'A classic novel.', 12.50, 'Fiction', 20);
+('Sous la Cendre', 'Hervé Basile Ngoné', 'Clé', 'A powerful exploration of identity and tradition in Cameroon.', 12000, 'Fiction', 45),
+('Le Vieux Nègre et la Médaille', 'Ferdinand Oyono', 'Julliard', 'A satirical Cameroonian classic critiquing colonialism.', 10500, 'Classic', 38),
+('Une Vie de Boy', 'Ferdinand Oyono', 'Julliard', 'Life through the eyes of a houseboy in colonial Cameroon.', 9500, 'Fiction', 40),
+('L\'Enfant de Sable', 'Tahar Ben Jelloun', 'Seuil', 'A mysterious tale from the Francophone world.', 11000, 'Fiction', 35),
+('Tropiques Amers', 'Maryse Condé', 'Dalloz', 'Historical fiction connecting Africa and the Caribbean.', 13500, 'Historical', 28);

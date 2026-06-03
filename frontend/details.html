@@ -15,6 +15,8 @@
     </div>
 </nav>
 
+<div id="details-alerts" class="container mt-3"></div>
+
 <div class="container py-5">
     <div id="bookDetails" class="row g-5">
         <!-- Skeleton -->
@@ -23,6 +25,16 @@
 </div>
 
 <script>
+    function showAlert(message, type = 'danger', timeout = 4000) {
+        const container = document.getElementById('details-alerts') || (function(){ const d=document.createElement('div'); d.id='details-alerts'; document.body.prepend(d); return d; })();
+        const div = document.createElement('div');
+        div.className = `alert alert-${type} alert-dismissible fade show`;
+        div.role = 'alert';
+        div.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        container.appendChild(div);
+        if (timeout > 0) setTimeout(() => { try { div.remove(); } catch(e){} }, timeout);
+    }
+
     async function loadDetails() {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
@@ -52,7 +64,7 @@
                 <p class="h4 text-muted mb-4">by ${book.author}</p>
                 
                 <div class="d-flex align-items-center mb-4">
-                    <span class="h2 fw-bold text-primary mb-0 me-3">$${book.price}</span>
+                    <span class="h2 fw-bold text-primary mb-0 me-3">${Number(book.price).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA</span>
                     <span class="badge ${book.stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'} px-3 py-2">
                         ${book.stock > 0 ? 'In Stock ('+book.stock+')' : 'Out of Stock'}
                     </span>
@@ -111,7 +123,7 @@
                     btn.classList.replace('btn-success', 'btn-primary');
                 }, 3000);
             } else {
-                alert(result.message);
+                showAlert(result.message, result.success ? 'success' : 'danger');
                 if (result.message === 'Please login first.') window.location.href = 'auth.html';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-cart-plus me-2"></i>Add to Shopping Cart';

@@ -1,6 +1,13 @@
 <?php
 // backend/config.php
 
+// Session Configuration
+ini_set('session.cookie_lifetime', 3600); // 1 hour
+ini_set('session.gc_maxlifetime', 3600);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
+ini_set('session.cookie_samesite', 'Lax');
+
 $host = '172.19.128.1';
 $db_name = 'bookstore_db';
 $username = 'ictu_student'; // Change if necessary

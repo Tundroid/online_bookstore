@@ -15,11 +15,22 @@ $action = $_GET['action'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
-        $shipping_address = $_POST['address'] ?? '';
-        $payment_method = $_POST['payment'] ?? '';
+        $shipping_address = trim($_POST['address'] ?? '');
+        $payment_method = trim($_POST['payment'] ?? '');
 
-        if (empty($shipping_address) || empty($payment_method)) {
-            echo json_encode(['success' => false, 'message' => 'Shipping and payment details are required.']);
+        // Server-side validation
+        if (empty($shipping_address) || strlen($shipping_address) < 10) {
+            echo json_encode(['success' => false, 'message' => 'Shipping address must be at least 10 characters.']);
+            exit;
+        }
+        
+        if (empty($payment_method)) {
+            echo json_encode(['success' => false, 'message' => 'Payment method is required.']);
+            exit;
+        }
+
+        if (!in_array(explode('(', $payment_method)[0], ['MTN MoMo', 'Orange Money', 'Cash on Delivery'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid payment method.']);
             exit;
         }
 
@@ -27,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->beginTransaction();
 
             // 1. Get cart items
-            $stmt = $pdo->prepare("SELECT c.book_id, c.quantity, b.price FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?");
+            $stmt = $pdo->prepare("SELECT c.book_id, c.quantity, b.price, b.stock FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?");
             $stmt->execute([$user_id]);
             $items = $stmt->fetchAll();
 
@@ -35,6 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Cart is empty.']);
                 $pdo->rollBack();
                 exit;
+            }
+
+            // Validate stock availability for all items
+            foreach ($items as $item) {
+                if ($item['quantity'] > $item['stock']) {
+                    $pdo->rollBack();
+                    echo json_encode(['success' => false, 'message' => 'Insufficient stock for one or more items. Please update your cart.']);
+                    exit;
+                }
             }
 
             $total_price = 0;

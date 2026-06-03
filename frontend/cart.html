@@ -15,15 +15,16 @@
                 <div class="card shadow-sm"><div class="card-body">
                     <h3 class="mb-4 fw-bold">Your Cart</h3>
                     <div id="cart-items"></div>
-                    <h4 class="mt-4 text-end text-primary fw-bold">Total: $<span id="cart-total">0.00</span></h4>
+                    <h4 class="mt-4 text-end text-primary fw-bold">Total: <span id="cart-total">0 FCFA</span></h4>
                 </div></div>
             </div>
             <div class="col-md-5">
                 <div class="card shadow-sm bg-light"><div class="card-body">
                     <h3 class="mb-4 fw-bold">Checkout</h3>
                     <form id="checkout-form" onsubmit="app.handleCheckout(event)">
-                        <div class="mb-3"><label class="form-label">Shipping Address</label><textarea id="shipping-address" class="form-control" rows="3" required></textarea></div>
-                        <div class="mb-4"><label class="form-label">Payment Method</label><select id="payment-method" class="form-select" required><option value="MTN MoMo">MTN MoMo</option><option value="Orange Money">Orange Money</option><option value="PayPal">PayPal</option></select></div>
+                        <div class="mb-3"><label class="form-label">Shipping Address</label><textarea id="shipping-address" class="form-control" rows="3" list="address-history" placeholder="Enter or select a previous address..." minlength="10" required></textarea><datalist id="address-history"></datalist></div>
+                        <div class="mb-3"><label class="form-label">Payment Method</label><select id="payment-method" class="form-select" required><option value="MTN MoMo">MTN MoMo</option><option value="Orange Money">Orange Money</option><option value="Cash on Delivery">Cash on Delivery</option></select></div>
+                        <div class="mb-4"><label class="form-label">Phone Number</label><input id="payment-phone" type="tel" class="form-control" placeholder="e.g. 675123456" pattern="[0-9]{8,12}"></div>
                         <button type="submit" class="btn btn-success w-100 btn-lg" id="checkout-btn">Place Order</button>
                     </form>
                 </div></div>

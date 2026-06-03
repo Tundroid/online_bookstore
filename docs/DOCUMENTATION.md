@@ -76,7 +76,7 @@ The application uses a MySQL database with the following tables and relationship
 - `orders.id` → `order_items.order_id`
 - `books.id` → `order_items.book_id`
 
-### ERD Placeholder
+### ERD
 ![Project DB Schema](schema.png)
 
 ## 3. Architecture Description
@@ -260,19 +260,17 @@ The frontend is a small multi-page application using standard HTML, Bootstrap, a
 
 ## 6. Annotated Screenshots and Placeholders
 
-- [TODO: Screenshot of the login/register page with annotations]
-- [TODO: Screenshot of the catalog page showing search filters and book cards]
-- [TODO: Screenshot of a book detail page with Add to Cart button]
-- [TODO: Screenshot of the cart page with quantity update and totals]
-- [TODO: Screenshot of the checkout page showing shipping/payment form]
-- [TODO: Screenshot of the confirmation page after order placement]
-- [TODO: Screenshot of the orders page showing order history]
-- [TODO: Screenshot of the admin panel book management interface]
-- [TODO: Screenshot of the admin sales report and status update UI]
-
-## 7. Notes for Completion
-
-- Replace each `[TODO: ...]` placeholder with the actual image or diagram in your Word document.
-- For the ERD, draw relationships between `users`, `books`, `cart`, `orders`, and `order_items`.
-- Add customer and admin screenshots with brief captions describing the workflow steps.
-- If you add a profile edit feature later, update the documentation under "Front-end Architecture" and the user manual accordingly.
+![User Registration Page](image-0.png)
+![User Login Page](image-1.png)
+![Book Catalog Page - Desktop View](image-2.png)
+![Book Catalog Page - Movile View](image-3.png)
+![Book Details Page](image-4.png)
+![Cart View and Checkout Page](image-5.png)
+![Order Confirmation Page](image-6.png)
+![User Profile Page](image-7.png)
+![Update User Email / Password Form](image-8.png)
+![Catalog Page when admin signs in](image-9.png)
+![Admin Dashboard and Orders](image-10.png)
+![Admin Orders](image-11.png)
+![Admin Inventory](image-12.png)
+![Adding New Book to Inventory](image-13.png)

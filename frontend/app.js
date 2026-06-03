@@ -114,7 +114,7 @@ const app = {
         alerts.appendChild(div);
 
         if (timeout > 0) setTimeout(() => {
-            try { div.classList.remove('show'); div.classList.add('hide'); div.remove(); } catch (e) {}
+            try { div.classList.remove('show'); div.classList.add('hide'); div.remove(); } catch (e) { }
         }, timeout);
     },
 
@@ -161,36 +161,36 @@ const app = {
         const username = document.getElementById('auth-username').value.trim();
         const password = document.getElementById('auth-password').value;
         const email = this.isRegistering ? document.getElementById('auth-email').value.trim() : null;
-        
+
         // Client-side validation
         if (!username || username.length < 3) {
             this.showAlert('Username must be at least 3 characters.', 'danger');
             return;
         }
-        
+
         if (username.length > 30) {
             this.showAlert('Username cannot exceed 30 characters.', 'danger');
             return;
         }
-        
+
         if (!password || password.length < 6) {
             this.showAlert('Password must be at least 6 characters.', 'danger');
             return;
         }
-        
+
         if (this.isRegistering) {
             if (!email) {
                 this.showAlert('Email is required.', 'danger');
                 return;
             }
-            
+
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 this.showAlert('Please enter a valid email address.', 'danger');
                 return;
             }
         }
-        
+
         const action = this.isRegistering ? 'register' : 'login';
         const formData = new FormData();
         formData.append('username', username);
@@ -200,7 +200,7 @@ const app = {
         const res = await fetch(`../backend/auth.php?action=${action}`, { method: 'POST', body: formData });
         const data = await res.json();
         this.showAlert(data.message, data.success ? 'success' : 'danger');
-        
+
         if (data.success) {
             if (action === 'register') this.toggleAuthMode();
             else window.location.href = 'index.html';
@@ -229,14 +229,14 @@ const app = {
                 <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                 <h5 class="mt-3 text-muted fw-bold">Loading brilliant books...</h5>
             </div>`;
-        
+
         const title = document.getElementById('search-title')?.value || '';
         const author = document.getElementById('search-author')?.value || '';
         const genre = document.getElementById('search-genre')?.value || '';
 
         const res = await fetch(`../backend/books.php?action=list&page=${page}&search=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&genre=${encodeURIComponent(genre)}`);
         const data = await res.json();
-        
+
         if (data.success) {
             const container = document.getElementById('books-container');
             if (data.data.length === 0) container.innerHTML = '<div class="col-12 my-5 py-5 text-center"><h3 class="text-muted fw-bold mb-3">No books found.</h3><p class="text-secondary">Try adjusting your search criteria!</p></div>';
@@ -260,9 +260,9 @@ const app = {
                         </div>
                     </div></div>`).join('');
             }
-            
-            document.getElementById('pagination-controls').innerHTML = Array.from({length: data.pages}, (_, i) => 
-                `<li class="page-item ${i+1 === page ? 'active' : ''}"><button class="page-link rounded mx-1 shadow-sm" onclick="app.loadCatalog(${i+1})">${i+1}</button></li>`
+
+            document.getElementById('pagination-controls').innerHTML = Array.from({ length: data.pages }, (_, i) =>
+                `<li class="page-item ${i + 1 === page ? 'active' : ''}"><button class="page-link rounded mx-1 shadow-sm" onclick="app.loadCatalog(${i + 1})">${i + 1}</button></li>`
             ).join('');
         }
     },
@@ -317,8 +317,8 @@ const app = {
 
     async addToCart(bookId, qty = 1) {
         if (!this.user) return window.location.href = 'auth.html';
-        const fd = new FormData(); 
-        fd.append('book_id', bookId); 
+        const fd = new FormData();
+        fd.append('book_id', bookId);
         fd.append('quantity', qty);
         const res = await fetch('../backend/cart.php?action=add', { method: 'POST', body: fd });
         const data = await res.json();
@@ -337,7 +337,7 @@ const app = {
         const items = await res.json();
         const container = document.getElementById('cart-items');
         let total = 0;
-        
+
         if (items.length === 0) {
             container.innerHTML = '<p class="text-muted">Your cart is empty.</p>';
             document.getElementById('checkout-btn').disabled = true;
@@ -395,8 +395,8 @@ const app = {
 
     async updateCart(bookId, qty) {
         if (!this.user) return window.location.href = 'auth.html';
-        const fd = new FormData(); 
-        fd.append('book_id', bookId); 
+        const fd = new FormData();
+        fd.append('book_id', bookId);
         fd.append('quantity', qty);
         const res = await fetch('../backend/cart.php?action=update', { method: 'POST', body: fd });
         const data = await res.json();
@@ -411,7 +411,7 @@ const app = {
 
     async removeFromCart(bookId) {
         if (!this.user) return window.location.href = 'auth.html';
-        const fd = new FormData(); 
+        const fd = new FormData();
         fd.append('book_id', bookId);
         const res = await fetch('../backend/cart.php?action=remove', { method: 'POST', body: fd });
         const data = await res.json();
@@ -443,7 +443,8 @@ const app = {
 
         const fd = new FormData();
         fd.append('address', address);
-        fd.append('payment', paymentPhone ? `${paymentMethod} (${paymentPhone})` : paymentMethod);
+        fd.append('payment-method', paymentMethod);
+        fd.append('payment-details', paymentPhone);
 
         const res = await fetch('../backend/orders.php?action=create', { method: 'POST', body: fd });
         const data = await res.json();
@@ -458,7 +459,7 @@ const app = {
     // --- User Profile & Orders (Features 1 & 7) ---
     async loadProfile() {
         if (!this.user) return window.location.href = 'auth.html';
-        
+
         // Load Profile Info
         const res = await fetch('../backend/user.php');
         const data = await res.json();
@@ -486,7 +487,7 @@ const app = {
         if (orders.length === 0) container.innerHTML = '<div class="alert alert-light border shadow-sm rounded-4 p-5 text-center"><h4 class="text-muted fw-bold">No past orders.</h4><p class="text-secondary mb-0">Start exploring our catalog to make your first purchase!</p></div>';
         else {
             const statusColors = { 'Pending': 'warning', 'Processing': 'info', 'Shipped': 'primary', 'Delivered': 'success' };
-            
+
             container.innerHTML = orders.map(o => {
                 const badgeClass = statusColors[o.status] || 'secondary';
                 return `
@@ -494,7 +495,7 @@ const app = {
                     <div class="card-header bg-white border-bottom p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
                         <div>
                             <span class="text-muted small fw-bold d-block text-uppercase">Order Placed</span>
-                            <strong class="fs-6">${new Date(o.created_at).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}</strong>
+                            <strong class="fs-6">${new Date(o.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</strong>
                         </div>
                         <div>
                             <span class="text-muted small fw-bold d-block text-uppercase">Total Amount</span>
@@ -510,8 +511,9 @@ const app = {
                     </div>
                     <div class="card-body p-4 bg-light">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6"><strong class="small text-uppercase text-muted">Delivery</strong><p class="mb-0 text-secondary">${o.shipping_address}</p></div>
-                            <div class="col-md-6"><strong class="small text-uppercase text-muted">Payment</strong><p class="mb-0 text-secondary">${o.payment_method}</p></div>
+                            <div class="col-md-6"><strong class="small text-uppercase text-muted">Delivery Address</strong><p class="mb-0 text-secondary">${o.shipping_address}</p></div>
+                            <div class="col-md-6"><strong class="small text-uppercase text-muted">Payment Method</strong><p class="mb-0 text-secondary">${o.payment_method}</p></div>
+                            <div class="col-md-6"><strong class="small text-uppercase text-muted">Payment Details</strong><p class="mb-0 text-secondary">${o.payment_details || 'N/A'}</p></div>
                         </div>
                         <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm" onclick="app.viewOrderDetails(${o.id})">View Ordered Items</button>
                         <div id="order-details-${o.id}" class="mt-3 text-dark fw-medium"></div>
@@ -524,7 +526,7 @@ const app = {
     async viewOrderDetails(orderId) {
         const res = await fetch(`../backend/orders.php?action=details&id=${orderId}`);
         const items = await res.json();
-        
+
         const detailsHtml = items.map(i => `
             <div class="d-flex align-items-center bg-white p-3 rounded-3 shadow-sm mb-2 border">
                 <img src="${i.image_url || app.FALLBACK_IMG}" onerror="this.onerror=null; this.src='${app.FALLBACK_IMG}';" style="width: 40px; height: 60px; object-fit: cover;" class="rounded me-3 shadow-sm">
@@ -539,24 +541,24 @@ const app = {
         e.preventDefault();
         const email = document.getElementById('profile-email').value.trim();
         const password = document.getElementById('profile-password').value;
-        
+
         // Client-side validation
         if (!email) {
             this.showAlert('Email is required.', 'danger');
             return;
         }
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             this.showAlert('Please enter a valid email address.', 'danger');
             return;
         }
-        
+
         if (password && password.length < 6) {
             this.showAlert('Password must be at least 6 characters if provided.', 'danger');
             return;
         }
-        
+
         const fd = new FormData();
         fd.append('email', email);
         fd.append('password', password);
@@ -589,8 +591,8 @@ const app = {
         const res = await fetch(`../backend/admin.php?action=sales_report&${params.toString()}`);
         const data = await res.json();
         const container = document.getElementById('sales-report-container');
-        
-        if(data.success) {
+
+        if (data.success) {
             container.innerHTML = `<div class="table-responsive rounded-4 shadow-sm border bg-white mt-4"><table class="table table-hover align-middle mb-0">
                 <thead class="bg-light text-secondary"><tr><th class="ps-4">ID</th><th>Customer</th><th>Book</th><th>Qty</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody>${data.data.map(r => `
@@ -602,7 +604,7 @@ const app = {
                         <td class="fw-bold text-dark">${this.formatCurrency(r.total_price)}</td>
                         <td>
                             <select class="form-select form-select-sm rounded-pill shadow-sm fw-bold bg-light border-0 px-3 py-1" onchange="app.updateOrderStatus(${r.id}, this.value)">
-                                ${['Pending','Processing','Shipped','Delivered'].map(status => `<option value="${status}" ${status === r.status ? 'selected' : ''}>${status}</option>`).join('')}
+                                ${['Pending', 'Processing', 'Shipped', 'Delivered'].map(status => `<option value="${status}" ${status === r.status ? 'selected' : ''}>${status}</option>`).join('')}
                             </select>
                         </td><td class="text-muted small">${new Date(r.created_at).toLocaleDateString()}</td>
                     </tr>
@@ -639,28 +641,28 @@ const app = {
         const author = document.getElementById('admin-book-author').value.trim();
         const price = parseFloat(document.getElementById('admin-book-price').value);
         const stock = parseInt(document.getElementById('admin-book-stock').value) || 0;
-        
+
         // Client-side validation
         if (!title || title.length < 3) {
             this.showAlert('Title must be at least 3 characters.', 'danger');
             return;
         }
-        
+
         if (!author || author.length < 2) {
             this.showAlert('Author must be at least 2 characters.', 'danger');
             return;
         }
-        
+
         if (!price || price <= 0) {
             this.showAlert('Price must be greater than 0.', 'danger');
             return;
         }
-        
+
         if (stock < 0) {
             this.showAlert('Stock cannot be negative.', 'danger');
             return;
         }
-        
+
         const action = bookId ? 'update_book' : 'create_book';
         const fd = new FormData();
         if (bookId) fd.append('id', bookId);

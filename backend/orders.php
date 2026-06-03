@@ -16,7 +16,8 @@ $action = $_GET['action'] ?? '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $shipping_address = trim($_POST['address'] ?? '');
-        $payment_method = trim($_POST['payment'] ?? '');
+        $payment_method = trim($_POST['payment-method'] ?? '');
+        $payment_phone = trim($_POST['payment-details'] ?? '');
 
         // Server-side validation
         if (empty($shipping_address) || strlen($shipping_address) < 10) {
@@ -29,8 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        if (empty($payment_phone)) {
+            echo json_encode(['success' => false, 'message' => 'Payment phone number is required.']);
+            exit;
+        }
+
         if (!in_array(explode('(', $payment_method)[0], ['MTN MoMo', 'Orange Money', 'Cash on Delivery'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid payment method.']);
+            exit;
+        }
+
+        // Validate phone number format (basic check for 8-12 digits)
+        if (!preg_match('/^[0-9]{8,12}$/', $payment_phone)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid phone number format.']);
             exit;
         }
 
@@ -63,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 2. Create Order
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, shipping_address, payment_method) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$user_id, $total_price, $shipping_address, $payment_method]);
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, shipping_address, payment_method, payment_details) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$user_id, $total_price, $shipping_address, $payment_method, $payment_phone]);
             $order_id = $pdo->lastInsertId();
 
             // 3. Move items to order_items and update stock

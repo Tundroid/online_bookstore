@@ -1,0 +1,11 @@
+TODO:
+session expiry
+Filter reset for catalog and admin orders
+replace all window alerts with boostrap alerts
+add cart badge and update accordingly
+update payment to collect numbers, remove paypal
+suggest shipping addresses during checking from client history
+show shipping address and payment method in orders
+ensure client and server side validations
+update currency to be FCFA
+use cameroonian books

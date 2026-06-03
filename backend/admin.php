@@ -103,5 +103,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute($params);
         echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
     }
+
+    if ($action === 'dashboard_stats') {
+        $stats = [
+            'total_orders' => 0,
+            'total_revenue' => 0,
+            'average_order_value' => 0,
+            'total_books_sold' => 0,
+            'total_customers' => 0,
+            'top_book_title' => null,
+            'top_customer_name' => null,
+            'status_breakdown' => null,
+            'recent_orders' => []
+        ];
+
+        $stmt = $pdo->query("SELECT COUNT(*) AS total_orders, COALESCE(SUM(total_price), 0) AS total_revenue, COALESCE(AVG(total_price), 0) AS average_order_value, COUNT(DISTINCT user_id) AS total_customers FROM orders");
+        $stats = array_merge($stats, $stmt->fetch());
+
+        $stmt = $pdo->query("SELECT COALESCE(SUM(oi.quantity), 0) AS total_books_sold FROM order_items oi");
+        $stats['total_books_sold'] = (int)$stmt->fetchColumn();
+
+        $stmt = $pdo->query("SELECT b.title FROM order_items oi JOIN books b ON oi.book_id = b.id GROUP BY b.id ORDER BY SUM(oi.quantity) DESC LIMIT 1");
+        $stats['top_book_title'] = $stmt->fetchColumn() ?: 'N/A';
+
+        $stmt = $pdo->query("SELECT u.username FROM orders o JOIN users u ON o.user_id = u.id GROUP BY u.id ORDER BY SUM(o.total_price) DESC LIMIT 1");
+        $stats['top_customer_name'] = $stmt->fetchColumn() ?: 'N/A';
+
+        $stmt = $pdo->query("SELECT status, COUNT(*) AS count FROM orders GROUP BY status ORDER BY FIELD(status, 'Pending', 'Processing', 'Shipped', 'Delivered')");
+        $breakdown = [];
+        while ($row = $stmt->fetch()) {
+            $breakdown[] = "{$row['status']}: {$row['count']}";
+        }
+        $stats['status_breakdown'] = implode(' • ', $breakdown);
+
+        $stmt = $pdo->query("SELECT o.id, o.created_at, o.total_price, o.status, u.username FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT 5");
+        $stats['recent_orders'] = $stmt->fetchAll();
+
+        echo json_encode(['success' => true, 'stats' => $stats]);
+    }
 }
 ?>

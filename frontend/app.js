@@ -598,7 +598,7 @@ const app = {
 
         if (data.success) {
             container.innerHTML = `<div class="table-responsive rounded-4 shadow-sm border bg-white mt-4"><table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-secondary"><tr><th class="ps-4">ID</th><th>Customer</th><th>Book</th><th>Qty</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <thead class="bg-light text-secondary"><tr><th class="ps-4">ID</th><th>Customer</th><th>Book</th><th>Qty</th><th>Total</th><th>Status</th><th>Date</th><th>Invoice</th></tr></thead>
                 <tbody>${data.data.map(r => `
                     <tr>
                         <td class="ps-4 fw-bold">#${r.id}</td>
@@ -610,7 +610,9 @@ const app = {
                             <select class="form-select form-select-sm rounded-pill shadow-sm fw-bold bg-light border-0 px-3 py-1" onchange="app.updateOrderStatus(${r.id}, this.value)">
                                 ${['Pending', 'Processing', 'Shipped', 'Delivered'].map(status => `<option value="${status}" ${status === r.status ? 'selected' : ''}>${status}</option>`).join('')}
                             </select>
-                        </td><td class="text-muted small">${new Date(r.created_at).toLocaleDateString()}</td>
+                        </td>
+                        <td class="text-muted small">${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td><a href="invoice.html?order_id=${r.id}" target="_blank" class="btn btn-outline-primary btn-sm">View</a></td>
                     </tr>
                 `).join('')}</tbody></table></div>`;
         }
@@ -657,6 +659,30 @@ const app = {
                     <div class="fw-semibold mb-2">${stats.top_book_title || 'No sales yet'}</div>
                     <div class="text-muted small">Best customer: ${stats.top_customer_name || 'N/A'}</div>
                     <div class="text-muted small">${stats.status_breakdown || ''}</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div><h6 class="fw-bold mb-1">Recent Orders</h6><p class="text-muted small mb-0">Latest five order summaries</p></div>
+                        <span class="badge bg-secondary rounded-pill py-2 px-3">Updated now</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th></tr></thead>
+                            <tbody>
+                                ${stats.recent_orders.map(order => `
+                                    <tr>
+                                        <td class="fw-bold">#${order.id}</td>
+                                        <td>${order.username}</td>
+                                        <td>${order.status}</td>
+                                        <td>${this.formatCurrency(order.total_price)}</td>
+                                        <td class="text-muted small">${new Date(order.created_at).toLocaleDateString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>`;
     },

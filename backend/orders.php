@@ -106,13 +106,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $orders = $stmt->fetchAll();
         echo json_encode($orders);
     } elseif ($action === 'details') {
-        $order_id = $_GET['id'] ?? 0;
-        $stmt = $pdo->prepare("SELECT oi.*, b.title, b.author, b.image_url 
-                                FROM order_items oi JOIN books b ON oi.book_id = b.id 
-                                WHERE oi.order_id = ?");
+        $order_id = (int)($_GET['id'] ?? 0);
+        if ($order_id <= 0) {
+            echo json_encode([]);
+            exit;
+        }
+
+        if ($_SESSION['role'] !== 'admin') {
+            $stmt = $pdo->prepare("SELECT id FROM orders WHERE id = ? AND user_id = ?");
+            $stmt->execute([$order_id, $user_id]);
+            if (!$stmt->fetch()) {
+                echo json_encode([]);
+                exit;
+            }
+        }
+
+        $stmt = $pdo->prepare("SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?");
         $stmt->execute([$order_id]);
         $details = $stmt->fetchAll();
         echo json_encode($details);
+    } elseif ($action === 'invoice') {
+        $order_id = (int)($_GET['id'] ?? 0);
+        if ($order_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid order identifier.']);
+            exit;
+        }
+
+        $query = "SELECT o.*, u.username, u.email FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?";
+        $params = [$order_id];
+
+        if ($_SESSION['role'] !== 'admin') {
+            $query .= " AND o.user_id = ?";
+            $params[] = $user_id;
+        }
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            echo json_encode(['success' => false, 'message' => 'Invoice not found or access denied.']);
+            exit;
+        }
+
+        $stmt = $pdo->prepare("SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?");
+        $stmt->execute([$order_id]);
+        $items = $stmt->fetchAll();
+
+        echo json_encode(['success' => true, 'order' => $order, 'items' => $items]);
     }
 }
 ?>

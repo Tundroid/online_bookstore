@@ -22,6 +22,7 @@ const app = {
         if (document.getElementById('cart-page')) this.loadCart();
         if (document.getElementById('profile-page')) this.loadProfile();
         if (document.getElementById('admin-page')) this.initAdmin();
+        if (document.getElementById('invoice-page')) this.loadInvoice();
     },
 
     injectStyles() {
@@ -568,8 +569,9 @@ const app = {
     },
 
     // --- Admin Panel (Feature 8) ---
-    initAdmin() {
+    async initAdmin() {
         if (!this.user || this.user.role !== 'admin') return window.location.href = 'index.html';
+        await this.loadAdminDashboard();
         this.loadSales();
     },
 
@@ -581,6 +583,8 @@ const app = {
     },
 
     async loadSales() {
+        await this.loadAdminDashboard();
+
         const params = new URLSearchParams({
             book_title: document.getElementById('sales-book-filter').value,
             customer: document.getElementById('sales-customer-filter').value,
@@ -618,6 +622,137 @@ const app = {
         document.getElementById('sales-start-date').value = '';
         document.getElementById('sales-end-date').value = '';
         this.loadSales();
+    },
+
+    async loadAdminDashboard() {
+        const res = await fetch('../backend/admin.php?action=dashboard_stats');
+        const data = await res.json();
+        const container = document.getElementById('admin-dashboard-summary');
+        if (!data.success || !container) return;
+
+        const stats = data.stats;
+        container.innerHTML = `
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="text-uppercase text-secondary small mb-2">Total Orders</div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h3 class="fw-bold mb-1">${stats.total_orders}</h3>
+                            <div class="text-muted">Placed by ${stats.total_customers} customers</div>
+                        </div>
+                        <span class="badge bg-primary rounded-pill py-2 px-3">${stats.total_books_sold} items</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="text-uppercase text-secondary small mb-2">Total Revenue</div>
+                    <h3 class="fw-bold mb-1">${this.formatCurrency(stats.total_revenue)}</h3>
+                    <div class="text-muted">Avg order ${this.formatCurrency(stats.average_order_value)}</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="text-uppercase text-secondary small mb-2">Top Performer</div>
+                    <div class="fw-semibold mb-2">${stats.top_book_title || 'No sales yet'}</div>
+                    <div class="text-muted small">Best customer: ${stats.top_customer_name || 'N/A'}</div>
+                    <div class="text-muted small">${stats.status_breakdown || ''}</div>
+                </div>
+            </div>`;
+    },
+
+    async loadInvoice() {
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('order_id');
+        const container = document.getElementById('invoice-container');
+
+        if (!orderId || !container) {
+            if (container) container.innerHTML = '<div class="alert alert-warning">Missing order number in invoice link.</div>';
+            return;
+        }
+
+        const res = await fetch(`../backend/orders.php?action=invoice&id=${encodeURIComponent(orderId)}`);
+        const data = await res.json();
+
+        if (!data.success) {
+            container.innerHTML = `<div class="alert alert-danger">${data.message || 'Unable to load invoice.'}</div>`;
+            return;
+        }
+
+        const order = data.order;
+        const items = data.items;
+        const subtotal = items.reduce((sum, item) => sum + (item.price_at_purchase * item.quantity), 0);
+        const statusClass = {
+            'Pending': 'bg-warning text-dark',
+            'Processing': 'bg-info text-dark',
+            'Shipped': 'bg-primary text-white',
+            'Delivered': 'bg-success text-white'
+        }[order.status] || 'bg-secondary text-white';
+
+        container.innerHTML = `
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
+                    <div>
+                        <h2 class="fw-bold mb-1">Invoice</h2>
+                        <div class="text-muted">Order #ORD-${order.id}</div>
+                        <div class="text-muted">${new Date(order.created_at).toLocaleString()}</div>
+                    </div>
+                    <div class="mt-3 mt-md-0 text-md-end">
+                        <span class="badge ${statusClass} rounded-pill px-3 py-2 fs-6">${order.status}</span>
+                    </div>
+                </div>
+
+                <div class="row gy-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="fw-semibold text-uppercase text-secondary small mb-2">Customer</div>
+                        <div>${order.username}</div>
+                        <div class="text-muted">${order.email}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold text-uppercase text-secondary small mb-2">Shipping Address</div>
+                        <div>${order.shipping_address.replace(/\n/g, '<br>')}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold text-uppercase text-secondary small mb-2">Payment</div>
+                        <div>${order.payment_method}</div>
+                        <div class="text-muted">${order.payment_details || ''}</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead class="bg-light text-secondary"><tr><th>Book</th><th class="text-center">Qty</th><th class="text-end">Unit</th><th class="text-end">Total</th></tr></thead>
+                        <tbody>
+                            ${items.map(item => `
+                                <tr class="border-bottom">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="${item.image_url || app.FALLBACK_IMG}" width="60" class="rounded-3 me-3" />
+                                            <div>
+                                                <div class="fw-semibold">${item.title}</div>
+                                                <div class="text-muted small">${item.author}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">${item.quantity}</td>
+                                    <td class="text-end">${this.formatCurrency(item.price_at_purchase)}</td>
+                                    <td class="text-end">${this.formatCurrency(item.price_at_purchase * item.quantity)}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end gx-0">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="border rounded-4 p-4 bg-light">
+                            <div class="d-flex justify-content-between mb-3"><span class="text-muted">Subtotal</span><strong>${this.formatCurrency(subtotal)}</strong></div>
+                            <div class="d-flex justify-content-between mb-3"><span class="text-muted">Shipping</span><strong>0 FCFA</strong></div>
+                            <div class="d-flex justify-content-between fs-5 fw-bold"><span>Total</span><strong>${this.formatCurrency(order.total_price)}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     },
 
     async openBookForm(book = null) {

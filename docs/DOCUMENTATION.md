@@ -77,6 +77,7 @@ The application uses a MySQL database with the following tables and relationship
 - `books.id` → `order_items.book_id`
 
 ### ERD Placeholder
+![Project DB Schema](schema.png)
 [TODO: Insert ERD diagram here showing Users, Books, Cart, Orders, Order_Items and their foreign key relationships.]
 
 ## 3. Architecture Description

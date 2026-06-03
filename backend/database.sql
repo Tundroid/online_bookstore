@@ -1,4 +1,6 @@
 -- Database: bookstore_db
+DROP DATABASE IF EXISTS bookstore_db;
+-- Database: bookstore_db
 
 CREATE DATABASE IF NOT EXISTS bookstore_db;
 USE bookstore_db;

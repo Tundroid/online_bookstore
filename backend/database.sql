@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS books (
     title VARCHAR(255) NOT NULL,
     author VARCHAR(255) NOT NULL,
     description TEXT,
+    publisher VARCHAR(255),
     price DECIMAL(10, 2) NOT NULL,
     genre VARCHAR(100),
     image_url VARCHAR(255),
@@ -67,7 +68,7 @@ INSERT INTO users (username, email, password, role) VALUES
 -- password is 'password' in the hash above
 
 -- Sample Books
-INSERT INTO books (title, author, description, price, genre, stock) VALUES
-('The Great Gatsby', 'F. Scott Fitzgerald', 'A story of wealth and love.', 10.99, 'Classic', 50),
-('1984', 'George Orwell', 'Dystopian future.', 8.99, 'Sci-Fi', 30),
-('To Kill a Mockingbird', 'Harper Lee', 'A classic novel.', 12.50, 'Fiction', 20);
+INSERT INTO books (title, author, publisher, description, price, genre, stock) VALUES
+('The Great Gatsby', 'F. Scott Fitzgerald', 'Scribner', 'A story of wealth and love.', 10.99, 'Classic', 50),
+('1984', 'George Orwell', 'Secker & Warburg', 'Dystopian future.', 8.99, 'Sci-Fi', 30),
+('To Kill a Mockingbird', 'Harper Lee', 'J. B. Lippincott & Co.', 'A classic novel.', 12.50, 'Fiction', 20);

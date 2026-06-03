@@ -3,224 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookStore | Premium Collection</title>
+    <title>Online Bookstore - Catalog</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="style.css">
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-    <div class="container">
-        <a class="navbar-brand" href="index.html"><i class="bi bi-book-half me-2"></i>BookStore</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link active" href="index.html">Catalog</a></li>
-            </ul>
-            <ul class="navbar-nav align-items-center" id="authLinks">
-                <!-- Dynamic Links -->
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<header class="hero-section text-center">
-    <div class="container">
-        <h1 class="display-4 fw-bold">Discover Your Next Favorite Book</h1>
-        <p class="lead opacity-75">Browse through our curated collection of world-class literature.</p>
-    </div>
-</header>
-
-<div class="container">
-    <div class="row g-3 mb-5 justify-content-center">
-        <div class="col-md-6">
-            <div class="input-group input-group-lg shadow-sm">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search title or author...">
-                <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
+    <div id="nav-container"></div>
+    
+    <div class="container" id="catalog-page">
+        <div class="row mb-4 bg-white p-3 shadow-sm rounded">
+            <div class="col-md-3 mb-2"><input type="text" id="search-title" class="form-control" placeholder="Search Title..."></div>
+            <div class="col-md-3 mb-2"><input type="text" id="search-author" class="form-control" placeholder="Author..."></div>
+            <div class="col-md-3 mb-2">
+                <select id="search-genre" class="form-select">
+                    <option value="">All Genres</option>
+                    <option value="Fiction">Fiction</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Classic">Classic</option>
+                </select>
             </div>
+            <div class="col-md-3 mb-2"><button class="btn btn-primary w-100" onclick="app.loadCatalog(1)">Search Filter</button></div>
         </div>
-        <div class="col-md-3">
-            <select id="genreFilter" class="form-select form-select-lg shadow-sm">
-                <option value="">All Categories</option>
-            </select>
-        </div>
-    </div>
-
-    <div id="bookList" class="row g-4">
-        <!-- Skeleton Loaders or Books -->
-    </div>
-
-    <nav aria-label="Page navigation" class="mt-5">
-        <ul class="pagination pagination-lg justify-content-center" id="pagination"></ul>
-    </nav>
-</div>
-
-<footer class="bg-dark text-white py-5 mt-5">
-    <div class="container text-center">
-        <p class="mb-0 opacity-50">&copy; 2025 BookStore Advanced Web Dev. All rights reserved.</p>
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    let currentUser = null;
-
-    async function checkAuth() {
-        const resp = await fetch('../backend/auth.php?action=check');
-        const data = await resp.json();
-        const authLinks = document.getElementById('authLinks');
-        if (data.isLoggedIn) {
-            currentUser = data.user;
-            authLinks.innerHTML = `
-                <li class="nav-item me-3">
-                    <a class="nav-link position-relative" href="cart.html">
-                        <i class="bi bi-cart3 fs-5"></i>
-                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                        <div class="bg-light text-dark rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="bi bi-person"></i>
-                        </div>
-                        ${data.user.username}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item" href="orders.html"><i class="bi bi-bag me-2"></i>My Orders</a></li>
-                        ${data.user.role === 'admin' ? '<li><a class="dropdown-item" href="admin.html"><i class="bi bi-speedometer2 me-2"></i>Admin Panel</a></li>' : ''}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                    </ul>
-                </li>
-            `;
-            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                await fetch('../backend/auth.php?action=logout');
-                location.reload();
-            });
-            updateCartBadge();
-        } else {
-            authLinks.innerHTML = '<li class="nav-item"><a class="btn btn-outline-light rounded-pill px-4" href="auth.html">Sign In</a></li>';
-        }
-    }
-
-    async function updateCartBadge() {
-        const resp = await fetch('../backend/cart.php?action=list');
-        const items = await resp.json();
-        const badge = document.getElementById('cartBadge');
-        if (Array.isArray(items) && items.length > 0) {
-            badge.textContent = items.length;
-            badge.classList.remove('d-none');
-        }
-    }
-
-    async function loadGenres() {
-        const resp = await fetch('../backend/books.php?action=genres');
-        const genres = await resp.json();
-        const filter = document.getElementById('genreFilter');
-        genres.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = g;
-            opt.textContent = g;
-            filter.appendChild(opt);
-        });
-    }
-
-    async function loadBooks(page = 1) {
-        const search = document.getElementById('searchInput').value;
-        const genre = document.getElementById('genreFilter').value;
-        const list = document.getElementById('bookList');
         
-        // Simple loading state
-        list.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
-
-        const resp = await fetch(`../backend/books.php?action=list&page=${page}&search=${search}&genre=${genre}`);
-        const data = await resp.json();
-        
-        list.innerHTML = '';
-        if (data.books.length === 0) {
-            list.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-search fs-1 text-muted"></i>
-                    <h3 class="mt-3 text-muted">No books matching your criteria</h3>
-                    <button class="btn btn-link" onclick="location.reload()">Clear all filters</button>
-                </div>`;
-        } else {
-            data.books.forEach(book => {
-                list.innerHTML += `
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="card h-100 shadow-sm border-0">
-                            <a href="details.html?id=${book.id}" class="text-decoration-none text-dark">
-                                <img src="${book.image_url || 'https://via.placeholder.com/350x500?text=No+Cover'}" class="card-img-top" alt="${book.title}">
-                            </a>
-                            <div class="card-body p-4 d-flex flex-column">
-                                <div class="mb-2"><span class="badge-genre">${book.genre || 'General'}</span></div>
-                                <h5 class="card-title fw-bold mb-1">${book.title}</h5>
-                                <p class="text-muted small mb-3">by ${book.author}</p>
-                                <div class="mt-auto d-flex align-items-center justify-content-between">
-                                    <span class="price-tag">$${book.price}</span>
-                                    <button class="btn btn-primary add-to-cart" data-id="${book.id}">
-                                        <i class="bi bi-cart-plus me-1"></i> Add
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        const pagin = document.getElementById('pagination');
-        pagin.innerHTML = '';
-        for (let i = 1; i <= data.totalPages; i++) {
-            pagin.innerHTML += `
-                <li class="page-item ${i === data.currentPage ? 'active' : ''}">
-                    <a class="page-link shadow-sm border-0 mx-1 rounded" href="#" onclick="loadBooks(${i}); return false;">${i}</a>
-                </li>`;
-        }
-    }
-
-    document.getElementById('searchBtn').addEventListener('click', () => loadBooks(1));
-    document.getElementById('genreFilter').addEventListener('change', () => loadBooks(1));
-    document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') loadBooks(1); });
-
-    document.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.add-to-cart');
-        if (btn) {
-            if (!currentUser) {
-                window.location.href = 'auth.html';
-                return;
-            }
-            const bookId = btn.getAttribute('data-id');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            
-            const resp = await fetch('../backend/cart.php?action=add', {
-                method: 'POST',
-                body: new URLSearchParams({ book_id: bookId, quantity: 1 })
-            });
-            const res = await resp.json();
-            
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cart-check me-1"></i> Added';
-            btn.classList.replace('btn-primary', 'btn-success');
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i class="bi bi-cart-plus me-1"></i> Add';
-                btn.classList.replace('btn-success', 'btn-primary');
-            }, 2000);
-            
-            updateCartBadge();
-        }
-    });
-
-    checkAuth();
-    loadGenres();
-    loadBooks();
-</script>
+        <div class="row" id="books-container"></div>
+        <ul class="pagination justify-content-center mt-4" id="pagination-controls"></ul>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html>

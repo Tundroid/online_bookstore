@@ -3,314 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Center | BookStore</title>
+    <title>Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="style.css">
+    <link href="style.css" rel="stylesheet">
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-0">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-shield-lock me-2"></i>Admin Panel</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="index.html">View Storefront</a></li>
-            </ul>
+<body>
+    <div id="nav-container"></div>
+    <div class="container mt-4" id="admin-page">
+        <h2 class="mb-4">Admin Dashboard</h2>
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item"><button class="nav-link active" onclick="app.switchAdminTab('sales'); this.classList.add('active'); this.parentElement.nextElementSibling.firstElementChild.classList.remove('active');">Sales Report</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="app.switchAdminTab('books'); this.classList.add('active'); this.parentElement.previousElementSibling.firstElementChild.classList.remove('active');">Manage Books</button></li>
+        </ul>
+        
+        <div id="admin-sales-tab">
+            <div class="row mb-3 bg-white p-3 shadow-sm rounded">
+                <div class="col"><input type="text" id="sales-book-filter" class="form-control" placeholder="Book Title"></div>
+                <div class="col"><input type="text" id="sales-customer-filter" class="form-control" placeholder="Customer"></div>
+                <div class="col"><input type="date" id="sales-start-date" class="form-control"></div>
+                <div class="col"><input type="date" id="sales-end-date" class="form-control"></div>
+                <div class="col"><button class="btn btn-primary w-100" onclick="app.loadSales()">Filter Reports</button></div>
+            </div>
+            <div id="sales-report-container" class="bg-white p-3 shadow-sm rounded"></div>
         </div>
-    </div>
-</nav>
-
-<div class="container py-5">
-    <!-- Quick Stats -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm overflow-hidden h-100">
-                <div class="card-body p-4 border-start border-primary border-5">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted fw-bold mb-1">TOTAL SALES</h6>
-                            <h2 class="fw-bold mb-0" id="statSales">$0.00</h2>
+        <div id="admin-books-tab" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Book Inventory</h4>
+                <button class="btn btn-success" onclick="app.openBookForm()">Add Book</button>
+            </div>
+            <div id="admin-book-form" class="card mb-3 d-none">
+                <div class="card-body">
+                    <h5 id="admin-book-form-title">Add Book</h5>
+                    <form id="admin-book-form-element" onsubmit="app.saveBook(event)">
+                        <input type="hidden" id="admin-book-id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Title</label><input type="text" id="admin-book-title" class="form-control" required></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Author</label><input type="text" id="admin-book-author" class="form-control" required></div>
                         </div>
-                        <div class="bg-primary-subtle p-3 rounded-circle text-primary"><i class="bi bi-currency-dollar fs-3"></i></div>
-                    </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label class="form-label">Publisher</label><input type="text" id="admin-book-publisher" class="form-control"></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Genre</label><input type="text" id="admin-book-genre" class="form-control"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label">Price</label><input type="number" step="0.01" id="admin-book-price" class="form-control" required></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">Stock</label><input type="number" min="0" id="admin-book-stock" class="form-control" required></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">Image URL</label><input type="url" id="admin-book-image_url" class="form-control"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea id="admin-book-description" class="form-control" rows="3"></textarea></div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" onclick="document.getElementById('admin-book-form').classList.add('d-none')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Book</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm overflow-hidden h-100">
-                <div class="card-body p-4 border-start border-success border-5">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted fw-bold mb-1">ORDERS</h6>
-                            <h2 class="fw-bold mb-0" id="statOrders">0</h2>
-                        </div>
-                        <div class="bg-success-subtle p-3 rounded-circle text-success"><i class="bi bi-bag-check fs-3"></i></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm overflow-hidden h-100">
-                <div class="card-body p-4 border-start border-info border-5">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted fw-bold mb-1">INVENTORY</h6>
-                            <h2 class="fw-bold mb-0" id="statBooks">0</h2>
-                        </div>
-                        <div class="bg-info-subtle p-3 rounded-circle text-info"><i class="bi bi-collection fs-3"></i></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Tabs -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white p-0">
-            <ul class="nav nav-tabs border-0" id="adminTabs">
-                <li class="nav-item">
-                    <button class="nav-link active px-4 py-3 fw-bold border-0 border-bottom border-3" data-bs-toggle="tab" data-bs-target="#manageBooks">Inventory Management</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link px-4 py-3 fw-bold border-0 border-bottom border-3" data-bs-toggle="tab" data-bs-target="#salesReport">Sales & Orders</button>
-                </li>
-            </ul>
-        </div>
-        <div class="card-body p-4">
-            <div class="tab-content">
-                <!-- Manage Books -->
-                <div class="tab-pane fade show active" id="manageBooks">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Book Inventory</h5>
-                        <button class="btn btn-primary px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#bookModal">
-                            <i class="bi bi-plus-lg me-2"></i>Add New Book
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle border-top">
-                            <thead class="bg-light">
-                                <tr class="small text-muted">
-                                    <th>TITLE & AUTHOR</th>
-                                    <th>GENRE</th>
-                                    <th>PRICE</th>
-                                    <th>STOCK</th>
-                                    <th class="text-end">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminBookList" class="small"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Sales Report -->
-                <div class="tab-pane fade" id="salesReport">
-                    <h5 class="fw-bold mb-4">Customer Orders</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle border-top">
-                            <thead class="bg-light">
-                                <tr class="small text-muted">
-                                    <th>ORDER ID</th>
-                                    <th>CUSTOMER</th>
-                                    <th>TOTAL</th>
-                                    <th>DATE</th>
-                                    <th>STATUS</th>
-                                    <th class="text-end">UPDATE STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportList" class="small"></tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr>
+                        <th>ID</th><th>Title</th><th>Author</th><th>Genre</th><th>Price</th><th>Stock</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="admin-books-table-body"></tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Book Modal -->
-<div class="modal fade" id="bookModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow-lg">
-            <form id="bookForm">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="fw-bold">Book Editor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" id="bookId">
-                    <div class="row g-3">
-                        <div class="col-md-8 mb-3">
-                            <label class="form-label small fw-bold">BOOK TITLE</label>
-                            <input type="text" id="title" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label small fw-bold">GENRE</label>
-                            <input type="text" id="genre" class="form-control bg-light border-0 py-2">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">AUTHOR</label>
-                            <input type="text" id="author" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label small fw-bold">PRICE ($)</label>
-                            <input type="number" step="0.01" id="price" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label small fw-bold">STOCK QTY</label>
-                            <input type="number" id="stock" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="form-label small fw-bold">IMAGE URL</label>
-                            <input type="text" id="image_url" class="form-control bg-light border-0 py-2" placeholder="https://...">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">DESCRIPTION</label>
-                            <textarea id="description" class="form-control bg-light border-0" rows="4"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4 shadow">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    async function loadStats() {
-        const resp = await fetch('../backend/admin.php?action=stats');
-        const data = await resp.json();
-        if (data.success === false) { window.location.href = 'index.html'; return; }
-        document.getElementById('statSales').textContent = `$${parseFloat(data.totalSales).toFixed(2)}`;
-        document.getElementById('statOrders').textContent = data.totalOrders;
-        document.getElementById('statBooks').textContent = data.totalBooks;
-    }
-
-    async function loadBooks() {
-        const resp = await fetch('../backend/books.php?action=list&page=1&limit=100');
-        const data = await resp.json();
-        const tbody = document.getElementById('adminBookList');
-        tbody.innerHTML = '';
-        data.books.forEach(book => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <img src="${book.image_url || 'https://via.placeholder.com/40x55'}" width="35" class="rounded me-3 shadow-sm">
-                            <div>
-                                <div class="fw-bold">${book.title}</div>
-                                <div class="text-muted extra-small">${book.author}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="badge bg-light text-dark border">${book.genre || 'N/A'}</span></td>
-                    <td class="fw-bold">$${book.price}</td>
-                    <td>
-                        <span class="badge ${book.stock < 5 ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'}">
-                            ${book.stock} units
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-info edit-book me-1" data-book='${JSON.stringify(book).replace(/'/g, "&apos;")}'><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-outline-danger delete-book" data-id="${book.id}"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    async function loadSalesReport() {
-        const resp = await fetch('../backend/admin.php?action=sales_report');
-        const orders = await resp.json();
-        const tbody = document.getElementById('reportList');
-        tbody.innerHTML = '';
-        orders.forEach(order => {
-            const statusClass = order.status === 'Delivered' ? 'bg-success' : 'bg-warning';
-            tbody.innerHTML += `
-                <tr>
-                    <td class="fw-bold text-muted">#${order.id}</td>
-                    <td>${order.username}</td>
-                    <td class="fw-bold text-primary">$${order.total_price}</td>
-                    <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                    <td><span class="badge ${statusClass}">${order.status}</span></td>
-                    <td class="text-end" style="width: 180px;">
-                        <select class="form-select form-select-sm border-0 bg-light update-status shadow-sm" data-id="${order.id}">
-                            <option value="Pending" ${order.status==='Pending'?'selected':''}>Pending</option>
-                            <option value="Processing" ${order.status==='Processing'?'selected':''}>Processing</option>
-                            <option value="Shipped" ${order.status==='Shipped'?'selected':''}>Shipped</option>
-                            <option value="Delivered" ${order.status==='Delivered'?'selected':''}>Delivered</option>
-                        </select>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    // Reuse form handlers from original admin
-    document.getElementById('bookForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('bookId').value;
-        const action = id ? 'update_book' : 'add_book';
-        const formData = new FormData();
-        formData.append('id', id);
-        formData.append('title', document.getElementById('title').value);
-        formData.append('author', document.getElementById('author').value);
-        formData.append('price', document.getElementById('price').value);
-        formData.append('stock', document.getElementById('stock').value);
-        formData.append('genre', document.getElementById('genre').value);
-        formData.append('image_url', document.getElementById('image_url').value);
-        formData.append('description', document.getElementById('description').value);
-
-        const resp = await fetch(`../backend/admin.php?action=${action}`, { method: 'POST', body: formData });
-        const res = await resp.json();
-        alert(res.message);
-        bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
-        loadBooks(); loadStats();
-    });
-
-    document.addEventListener('click', async (e) => {
-        const delBtn = e.target.closest('.delete-book');
-        if (delBtn) {
-            if (confirm('Permanently delete this book?')) {
-                const id = delBtn.getAttribute('data-id');
-                const formData = new FormData(); formData.append('id', id);
-                await fetch('../backend/admin.php?action=delete_book', { method: 'POST', body: formData });
-                loadBooks(); loadStats();
-            }
-        }
-        const editBtn = e.target.closest('.edit-book');
-        if (editBtn) {
-            const book = JSON.parse(editBtn.getAttribute('data-book'));
-            document.getElementById('bookId').value = book.id;
-            document.getElementById('title').value = book.title;
-            document.getElementById('author').value = book.author;
-            document.getElementById('price').value = book.price;
-            document.getElementById('stock').value = book.stock;
-            document.getElementById('genre').value = book.genre;
-            document.getElementById('image_url').value = book.image_url;
-            document.getElementById('description').value = book.description;
-            new bootstrap.Modal(document.getElementById('bookModal')).show();
-        }
-    });
-
-    document.addEventListener('change', async (e) => {
-        if (e.target.classList.contains('update-status')) {
-            const id = e.target.getAttribute('data-id');
-            const status = e.target.value;
-            const formData = new FormData(); formData.append('id', id); formData.append('status', status);
-            await fetch('../backend/admin.php?action=update_order_status', { method: 'POST', body: formData });
-            loadSalesReport();
-        }
-    });
-
-    loadStats(); loadBooks(); loadSalesReport();
-</script>
-<style>
-    .extra-small { font-size: 0.75rem; }
-    .nav-tabs .nav-link.active { color: var(--accent-color); border-bottom-color: var(--accent-color) !important; }
-    .nav-tabs .nav-link { color: #666; border-bottom: 3px solid transparent; }
-</style>
+    <script src="app.js"></script>
 </body>
 </html>

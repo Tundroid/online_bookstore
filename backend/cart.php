@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$user_id, $book_id, $quantity]);
         echo json_encode(['success' => true, 'message' => 'Added to cart.']);
     } elseif ($action === 'update') {
-        $book_id = $_POST['book_id'] ?? 0;
+        $book_id = $_POST['book_id'] ?? $_POST['id'] ?? 0;
         $quantity = $_POST['quantity'] ?? 1;
 
         if ($quantity <= 0) {
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         echo json_encode(['success' => true, 'message' => 'Cart updated.']);
     } elseif ($action === 'remove') {
-        $book_id = $_POST['book_id'] ?? 0;
+        $book_id = $_POST['book_id'] ?? $_POST['id'] ?? 0;
         $stmt = $pdo->prepare("DELETE FROM cart WHERE user_id = ? AND book_id = ?");
         $stmt->execute([$user_id, $book_id]);
         echo json_encode(['success' => true, 'message' => 'Removed from cart.']);

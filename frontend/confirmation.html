@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="nav-container"></div>
+    <div class="container mt-5" id="confirmation-page">
+        <div class="card shadow-sm p-4">
+            <h2 class="mb-3">Order Confirmation</h2>
+            <div id="confirmation-content" class="mb-4"></div>
+            <a href="index.html" class="btn btn-primary me-2">Continue Shopping</a>
+            <a href="profile.html" class="btn btn-outline-secondary">View My Orders</a>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        window.addEventListener('load', async () => {
+            const orderId = new URLSearchParams(window.location.search).get('order_id');
+            const content = document.getElementById('confirmation-content');
+            if (!orderId) {
+                content.innerHTML = '<p class="text-danger">Order information is missing. Please return to the cart and try again.</p>';
+                return;
+            }
+
+            const res = await fetch(`../backend/orders.php?action=details&id=${orderId}`);
+            const items = await res.json();
+            if (!Array.isArray(items) || items.length === 0) {
+                content.innerHTML = `<p class="text-success">Your order <strong>#${orderId}</strong> was received successfully.</p>`;
+                return;
+            }
+
+            content.innerHTML = `
+                <p class="lead">Thank you! Your order <strong>#${orderId}</strong> has been placed successfully.</p>
+                <p class="mb-4">We are processing your purchase and will update the order status soon.</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Book</th><th>Quantity</th><th>Price</th></tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(item => `<tr><td>${item.title}</td><td>${item.quantity}</td><td>$${parseFloat(item.price_at_purchase).toFixed(2)}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

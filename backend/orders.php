@@ -30,18 +30,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        if (empty($payment_phone)) {
-            echo json_encode(['success' => false, 'message' => 'Payment phone number is required.']);
-            exit;
-        }
-
-        if (!in_array(explode('(', $payment_method)[0], ['MTN MoMo', 'Orange Money', 'Cash on Delivery'])) {
+        $validPaymentMethods = ['MTN MoMo', 'Orange Money', 'Cash on Delivery'];
+        if (!in_array($payment_method, $validPaymentMethods, true)) {
             echo json_encode(['success' => false, 'message' => 'Invalid payment method.']);
             exit;
         }
 
-        // Validate phone number format (basic check for 8-12 digits)
-        if (!preg_match('/^[0-9]{8,12}$/', $payment_phone)) {
+        // Phone is required for mobile money, optional for COD
+        if (empty($payment_phone)) {
+            if ($payment_method !== 'Cash on Delivery') {
+                echo json_encode(['success' => false, 'message' => 'Payment phone number is required for mobile money payments.']);
+                exit;
+            }
+        } elseif (!preg_match('/^[0-9]{8,12}$/', $payment_phone)) {
+            // Only validate format if a phone was provided
             echo json_encode(['success' => false, 'message' => 'Invalid phone number format.']);
             exit;
         }

@@ -9,11 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark mb-5">
-    <div class="container">
-        <a class="navbar-brand" href="index.html"><i class="bi bi-book-half me-2"></i>BookStore</a>
-    </div>
-</nav>
+<div id="nav-container"></div>
 
 <div id="checkout-alerts" class="container mt-3"></div>
 
@@ -23,33 +19,23 @@
             <h3 class="fw-bold mb-4">Shipping Information</h3>
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <form id="checkoutForm">
+                    <form id="checkout-form" onsubmit="app.handleCheckout(event)">
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">SHIPPING ADDRESS</label>
-                            <textarea id="address" class="form-control" rows="3" placeholder="Enter or select a previous address..." list="address-history" minlength="10" required></textarea><datalist id="address-history"></datalist>
+                            <textarea id="shipping-address" class="form-control" rows="3" placeholder="Enter or select a previous address..." list="address-history" minlength="10" required></textarea><datalist id="address-history"></datalist>
                         </div>
-                        <div class="mb-5">
+                        <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">PAYMENT METHOD</label>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <input type="radio" class="btn-check" name="payment" id="payMoMo" value="MTN MoMo" checked>
-                                    <label class="btn btn-outline-secondary w-100 py-3 text-start px-3" for="payMoMo">
-                                        <i class="bi bi-phone me-2"></i> MTN MoMo
-                                    </label>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="radio" class="btn-check" name="payment" id="payOM" value="Orange Money">
-                                    <label class="btn btn-outline-secondary w-100 py-3 text-start px-3" for="payOM">
-                                        <i class="bi bi-phone-vibrate me-2"></i> Orange Money
-                                    </label>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="radio" class="btn-check" name="payment" id="payCD" value="Cash on Delivery">
-                                    <label class="btn btn-outline-secondary w-100 py-3 text-start px-3" for="payCD">
-                                        <i class="bi bi-cash me-2"></i> Cash on Delivery
-                                    </label>
-                                </div>
-                            </div>
+                            <select id="payment-method" class="form-select" required>
+                                <option value="MTN MoMo">MTN MoMo</option>
+                                <option value="Orange Money">Orange Money</option>
+                                <option value="Cash on Delivery">Cash on Delivery</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">PHONE NUMBER <span class="text-muted">(required for mobile money)</span></label>
+                            <input id="payment-phone" type="tel" class="form-control" placeholder="e.g. 675123456" pattern="[0-9]{8,12}">
+                            <div class="form-text small">For Cash on Delivery you may leave this blank.</div>
                         </div>
                         <hr class="my-4">
                         <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow">
@@ -89,7 +75,9 @@
     </div>
 </div>
 
+<script src="app.js"></script>
 <script>
+    // Local fallback alert (app.showAlert will be preferred if available)
     function showAlert(message, type = 'danger', timeout = 4000) {
         const container = document.getElementById('checkout-alerts') || (function(){ const d=document.createElement('div'); d.id='checkout-alerts'; document.body.prepend(d); return d; })();
         const div = document.createElement('div');
@@ -128,31 +116,32 @@
         document.getElementById('summaryTotal').textContent = `${Number(total).toLocaleString('en-US', { maximumFractionDigits: 0 })} FCFA`;
     }
 
-    document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-
-        const formData = new FormData();
-        formData.append('address', document.getElementById('address').value);
-        formData.append('payment', e.target.querySelector('input[name="payment"]:checked').value);
-
-        const resp = await fetch('../backend/orders.php?action=create', {
-            method: 'POST',
-            body: formData
-        });
-        const result = await resp.json();
-        if (result.success) {
-            window.location.href = 'orders.html?success=1';
-        } else {
-            showAlert(result.message, result.success ? 'success' : 'danger');
-            btn.disabled = false;
-            btn.innerHTML = 'Complete Order & Pay';
+    function populateAddressHistory() {
+        const addresses = JSON.parse(localStorage.getItem('addressHistory') || '[]');
+        const datalist = document.getElementById('address-history');
+        if (datalist) {
+            datalist.innerHTML = addresses.map(addr => `<option value="${addr}">`).join('');
         }
-    });
+    }
+
+    // Initialize dynamic navbar and address suggestions (uses shared app.js)
+    function initCheckoutPage() {
+        populateAddressHistory();
+        if (typeof app !== 'undefined') {
+            app.checkAuth().then(() => {
+                app.renderNav();
+                if (app.user) {
+                    app.loadCartCount().then(() => app.renderNav());
+                }
+            }).catch(() => {});
+            // Also expose a global for any fallback
+            window.app = app;
+        }
+    }
 
     loadSummary();
+    // Delay a bit so app.js has registered the app object
+    setTimeout(initCheckoutPage, 30);
 </script>
 <style>
     .extra-small { font-size: 0.75rem; }

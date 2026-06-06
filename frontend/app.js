@@ -333,15 +333,17 @@ const app = {
     // --- Cart & Checkout (Features 5 & 6) ---
     async loadCart() {
         if (!this.user) return window.location.href = 'auth.html';
-        this.loadAddressHistory();
         const res = await fetch('../backend/cart.php?action=list');
         const items = await res.json();
         const container = document.getElementById('cart-items');
         let total = 0;
 
+        const proceedBtn = document.getElementById('proceed-checkout-btn');
+        const summaryTotalEl = document.getElementById('cart-summary-total');
+
         if (items.length === 0) {
             container.innerHTML = '<p class="text-muted">Your cart is empty.</p>';
-            document.getElementById('checkout-btn').disabled = true;
+            if (proceedBtn) proceedBtn.disabled = true;
         } else {
             container.innerHTML = items.map(item => {
                 total += item.price * item.quantity;
@@ -371,9 +373,11 @@ const app = {
                     </div>
                 </div>`;
             }).join('');
-            document.getElementById('checkout-btn').disabled = false;
+            if (proceedBtn) proceedBtn.disabled = false;
         }
-        document.getElementById('cart-total').innerText = this.formatCurrency(total);
+        const formatted = this.formatCurrency(total);
+        document.getElementById('cart-total').innerText = formatted;
+        if (summaryTotalEl) summaryTotalEl.innerText = formatted;
     },
 
     loadAddressHistory() {

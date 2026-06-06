@@ -20,6 +20,14 @@
     <script src="app.js"></script>
     <script>
         window.addEventListener('load', async () => {
+            // Render dynamic navbar
+            if (typeof app !== 'undefined') {
+                app.checkAuth().then(() => {
+                    app.renderNav();
+                    if (app.user) app.loadCartCount().then(() => app.renderNav());
+                }).catch(() => {});
+            }
+
             const orderId = new URLSearchParams(window.location.search).get('order_id');
             const content = document.getElementById('confirmation-content');
             if (!orderId) {

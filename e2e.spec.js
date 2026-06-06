@@ -101,19 +101,16 @@ test.describe('Online Bookstore - Production Grade E2E Tests', () => {
     });
 
     test('4. Checkout Process', async () => {
-        // Proceed to checkout
-        await page.click('#checkout-btn');
+        // Proceed to checkout (from cart page)
+        await page.click('#proceed-checkout-btn');
         await page.waitForURL('**/checkout.html');
         
-        // Fill checkout form
+        // Fill checkout form (phone optional for COD)
         await page.fill('#shipping-address', '123 E2E Test Avenue, Validation City');
         await page.selectOption('#payment-method', 'Cash on Delivery');
         
-        // Submit order
-        await page.evaluate(() => {
-            const form = document.querySelector('form');
-            if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        });
+        // Submit order (standard button)
+        await page.click('button:has-text("Complete Order & Pay")');
         
         // Wait for redirect to confirmation
         await page.waitForURL('**/confirmation.html?order_id=*');
